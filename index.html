@@ -721,13 +721,16 @@
 
   // 抽獎動畫
   function play() {
+    if(awardChange){
+      winnerNames = []
+    }
     if (nowPlaying) {
       return
     } else {
       nowPlaying = true
       playAnimation()
       let drawList = getDrawList()
-      let http = `https://www.random.org/integers/?num=${totalPickNumber * 10}&min=1&max=${drawList.length}&col=1&base=10&format=plain&rnd=new`
+      let http = `https://www.random.org/integers/?num=${totalPickNumber * 10}&min=0&max=${drawList.length - 1}&col=1&base=10&format=plain&rnd=new`
       if (winnerMode === 'edit') {
         toastr.error('請先儲存中獎者名單')
         return
@@ -899,7 +902,7 @@
         return finalData
       } else {
         for (let i = 0; i < array.length; i += 2) {
-          if (!autoFilter || !winnerList.includes(array[i + 1])) {
+          if (!autoFilter || !winnerNames.includes(array[i + 1])) {
             drawList.push(`${array[i + 1]}`)
           }
         }
@@ -957,16 +960,19 @@
       newAward = ''
       drawAmount = 0
       nowDrawNumber.innerText = drawAmount
+      winnerNames = []
     }
-    drawAmount = drawAmount + totalPickNumber
-    nowDrawNumber.innerText = drawAmount
+    
+    
     let winners = []
     let count = 0
     for (let i = 0; i < totalPickNumber * 10; i++) {
       let name = drawList[winnerNumberList[i]]
-      if (!winnerList.includes(name)) {
+      if (!winnerNames.includes(name)) {
         count = count + 1
         winnerList.push(name)
+        winnerNames.push(name)
+        drawAmount = drawAmount + 1
         console.log(`第${count}位中獎者: ${name}`);
       }
       if (Number(count) === Number(totalPickNumber)) {
@@ -976,6 +982,7 @@
     if (count < totalPickNumber) {
       console.log("真的假的");
     }
+    nowDrawNumber.innerText = drawAmount
     setTimeout(() => {
       renewWinnerForm()
     }, 4000);
@@ -1019,18 +1026,26 @@
     if (!!winnerFormEdit.value) {
       let separate = winnerFormEdit.value.trim().split(/\s+/)
       let newWinnerList = []
+      winnerNames = []
+      drawAmount = 0
       for (let i = 0; i < separate.length; i++) {
         if (!separate[i].includes('=====')) {
           newWinnerList.push(`${separate[i]}`)
-
+          winnerNames.push(separate[i])
+          drawAmount = drawAmount + 1
         } else {
           newWinnerList.push(separate[i])
+          winnerNames = []
+          drawAmount = 0
         }
       }
       winnerList = newWinnerList
     } else {
       winnerList = [`=====${nowAward}=====`]
+      winnerNames = []
+      drawAmount = 0
     }
+    nowDrawNumber.innerText = drawAmount
     renewWinnerForm()
   }
 
